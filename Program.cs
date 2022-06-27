@@ -9,16 +9,21 @@ namespace Wooting_RGB_Fricker
         static Random RndRGB { get; set; }
         static Boolean ShouldLoopRun { get; set; }
         static Int32 FPS { get; set; }
+        static Int32 mode { get; set; }
 
         static void Main(string[] args)
         {
             RndRGB = new Random();
 
-            Console.Write("Enter the desired FPS: ");
+            Console.Write("Select mode 0 for SetFull or mode 1 for SetSingle: ");
             String Input = Console.ReadLine();
 
-            // convert to integer
-            FPS = Convert.ToInt32(Input);
+            mode = Convert.ToInt32(Input);
+
+            Console.Write("Enter the desired FPS: ");
+            String Input2 = Console.ReadLine();
+
+            FPS = Convert.ToInt32(Input2);
 
             if (FPS < 0)
             {
@@ -66,23 +71,42 @@ namespace Wooting_RGB_Fricker
 
             RGBControl.SetDisconnectedCallback((DisconnectedCallback)StopTheFun);
 
-
-            Console.WriteLine("Fricking in progress...");
-            while (ShouldLoopRun)
+            if (mode == 0)
             {
-                KeyColour[,] keys = new KeyColour[RGBControl.MaxRGBRows, RGBControl.MaxRGBCols];
-                for (byte i = 0; i < device.MaxColumns; i++)
+                Console.WriteLine("Full Fricking in progress...");
+                while (ShouldLoopRun)
                 {
-                    for (byte j = 0; j < device.MaxRows; j++)
+                    KeyColour[,] keys = new KeyColour[RGBControl.MaxRGBRows, RGBControl.MaxRGBCols];
+                    for (byte i = 0; i < device.MaxColumns; i++)
                     {
-                        keys[j, i] = new KeyColour((byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255));
+                        for (byte j = 0; j < device.MaxRows; j++)
+                        {
+                            keys[j, i] = new KeyColour((byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255));
+                        }
                     }
+                    RGBControl.SetFull(keys);
+
+                    RGBControl.UpdateKeyboard();
+
+                    if (FPS > 0) Thread.Sleep(1000 / FPS);
                 }
-                RGBControl.SetFull(keys);
+            }
+            else
+            {
+                Console.WriteLine("Single Key Fricking in progress...");
+                while (ShouldLoopRun)
+                {
+                    for (byte i = 0; i < device.MaxColumns; i++)
+                    {
+                        for (byte j = 0; j < device.MaxRows; j++)
+                        {
+                            RGBControl._SetKey(j, i, (byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255), (byte)RndRGB.Next(0, 255));
+                        }
+                    }
+                    RGBControl.UpdateKeyboard();
 
-                RGBControl.UpdateKeyboard();
-
-                if (FPS > 0) Thread.Sleep(1000 / FPS);
+                    if (FPS > 0) Thread.Sleep(1000 / FPS);
+                }
             }
         }
     }
